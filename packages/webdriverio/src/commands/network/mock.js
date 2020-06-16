@@ -26,6 +26,7 @@ const SESSION_MOCKS = new Set()
 export default async function mock (url, filterOptions) {
     const [page] = await this.puppeteer.pages()
     const client = await page.target().createCDPSession()
+    const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
 
     /**
      * enable network Mocking if not already
@@ -40,12 +41,11 @@ export default async function mock (url, filterOptions) {
         )
     }
 
-    const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
-    const networkInterception = new NetworkInterception(url, filterOptions)
+    const browser = getBrowserObject(this)
+    const networkInterception = new NetworkInterception(url, filterOptions, browser)
     SESSION_MOCKS.add(networkInterception)
 
     if (this.isSauce) {
-        const browser = getBrowserObject(this)
         await networkInterception.init(browser)
     }
 
